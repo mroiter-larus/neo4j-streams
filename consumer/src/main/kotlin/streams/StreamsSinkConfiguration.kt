@@ -13,7 +13,7 @@ data class StreamsSinkConfiguration(val enabled: Boolean = StreamsConfig.SINK_EN
                                     val sourceIdStrategyConfig: SourceIdIngestionStrategyConfig = SourceIdIngestionStrategyConfig()) {
 
     companion object {
-        fun from(cfg: StreamsConfig, dbName: String, invalidTopics: List<String> = emptyList()): StreamsSinkConfiguration {
+        fun from(cfg: StreamsConfig, dbName: String, invalidTopics: Set<String> = emptySet()): StreamsSinkConfiguration {
             val default = StreamsSinkConfiguration()
 
             var topics = Topics.from(map = cfg.config, dbName = dbName, invalidTopics = invalidTopics)

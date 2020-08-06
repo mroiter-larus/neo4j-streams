@@ -18,7 +18,7 @@ abstract class StreamsEventConsumer(private val log: Log, private val dlqService
 
     abstract fun read(action: (String, List<StreamsSinkEntity>) -> Unit)
 
-    abstract fun invalidTopics(): List<String>
+    abstract fun invalidTopics(): Set<String>
 
 }
 

@@ -5,21 +5,21 @@ import org.apache.kafka.common.config.ConfigResource
 import java.util.*
 
 object KafkaValidationUtils {
-    fun getInvalidTopicsError(invalidTopics: List<String>) = "The BROKER config `auto.create.topics.enable` is false, the following topics need to be created into the Kafka cluster otherwise the messages will be discarded: $invalidTopics"
+    fun getInvalidTopicsError(invalidTopics: Set<String>) = "The BROKER config `auto.create.topics.enable` is false, the following topics need to be created into the Kafka cluster otherwise the messages will be discarded: $invalidTopics"
 
     fun getInvalidTopics(kafkaProps: Properties, allTopics: List<String>) = getInvalidTopics(AdminClient.create(kafkaProps), allTopics)
 
-    fun getInvalidTopics(client: AdminClient, allTopics: List<String>): List<String> {
+    fun getInvalidTopics(client: AdminClient, allTopics: List<String>): Set<String> {
         val kafkaTopics = client.listTopics().names().get()
         val invalidTopics = allTopics.filter { !kafkaTopics.contains(it) }
         return if (invalidTopics.isNotEmpty()) {
             if (isAutoCreateTopicsEnabled(client)) {
-                emptyList()
+                emptySet()
             } else {
-                invalidTopics
+                invalidTopics.toSet()
             }
         } else {
-            invalidTopics
+            invalidTopics.toSet()
         }
     }
 
@@ -32,6 +32,6 @@ object KafkaValidationUtils {
                 .flatMap { it.entries() }
                 .find { it.name() == "auto.create.topics.enable" }
                 ?.value()
-                ?.toBoolean() ?: false
+                ?.toBoolean() ?: true
     }
 }

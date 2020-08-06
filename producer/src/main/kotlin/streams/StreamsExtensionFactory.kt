@@ -1,5 +1,6 @@
 package streams
 
+import org.apache.kafka.clients.admin.KafkaAdminClient
 import org.neo4j.dbms.api.DatabaseManagementService
 import org.neo4j.kernel.availability.AvailabilityGuard
 import org.neo4j.kernel.availability.AvailabilityListener
@@ -12,7 +13,10 @@ import org.neo4j.kernel.lifecycle.LifecycleAdapter
 import org.neo4j.logging.internal.LogService
 import streams.config.StreamsConfig
 import streams.extensions.isSystemDb
+import streams.kafka.KafkaConfiguration
 import streams.procedures.StreamsProcedures
+import streams.utils.KafkaValidationUtils
+import streams.utils.Neo4jUtils
 import streams.utils.StreamsUtils
 
 class StreamsExtensionFactory : ExtensionFactory<StreamsExtensionFactory.Dependencies>(ExtensionType.DATABASE,"Streams.Producer") {
@@ -57,7 +61,6 @@ class StreamsEventRouterLifecycle(private val db: GraphDatabaseAPI,
             StreamsProcedures.registerEventRouter(eventRouter = streamHandler)
             StreamsProcedures.registerEventRouterConfiguration(eventRouterConfiguration = streamsEventRouterConfiguration)
             streamHandler.start()
-            streamHandler.printInvalidTopics()
             registerTransactionEventHandler()
             streamsLog.info("Streams Source module initialised")
         } catch (e: Exception) {
@@ -67,6 +70,9 @@ class StreamsEventRouterLifecycle(private val db: GraphDatabaseAPI,
 
     private fun registerTransactionEventHandler() {
         if (streamsEventRouterConfiguration.enabled) {
+            if (!KafkaValidationUtils.isAutoCreateTopicsEnabled(KafkaConfiguration.from(configuration.config).asProperties())) {
+                streamHandler.printInvalidTopics()
+            }
             streamsConstraintsService = StreamsConstraintsService(db, streamsEventRouterConfiguration.schemaPollingInterval)
             txHandler = StreamsTransactionEventHandler(streamHandler, streamsConstraintsService, streamsEventRouterConfiguration)
             databaseManagementService.registerTransactionEventListener(db.databaseName(), txHandler)
