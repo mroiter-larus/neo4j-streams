@@ -16,7 +16,7 @@ data class Topics(val cypherTopics: Map<String, String> = emptyMap(),
                   val cudTopics: Set<String> = emptySet(),
                   val nodePatternTopics: Map<String, NodePatternConfiguration> = emptyMap(),
                   val relPatternTopics: Map<String, RelationshipPatternConfiguration> = emptyMap(),
-                  val invalid: List<String> = emptyList()) {
+                  val invalid: Set<String> = emptySet()) {
 
     operator fun plus(other: Topics): Topics {
         return Topics(cypherTopics = this.cypherTopics + other.cypherTopics,
@@ -43,7 +43,7 @@ data class Topics(val cypherTopics: Map<String, String> = emptyMap(),
             TopicType.PATTERN_NODE to nodePatternTopics, TopicType.PATTERN_RELATIONSHIP to relPatternTopics)
 
     companion object {
-        fun from(map: Map<String, Any?>, replacePrefix: Pair<String, String> = ("" to ""), dbName: String = "", invalidTopics: List<String> = emptyList()): Topics {
+        fun from(map: Map<String, Any?>, replacePrefix: Pair<String, String> = ("" to ""), dbName: String = "", invalidTopics: Set<String> = emptySet()): Topics {
             val config = map
                     .filterKeys { if (dbName.isNotBlank()) it.toLowerCase().endsWith(".to.$dbName") else !it.contains(".to.") }
                     .mapKeys { if (dbName.isNotBlank()) it.key.replace(".to.$dbName", "", true) else it.key }
@@ -72,7 +72,7 @@ object TopicUtils {
 
     @JvmStatic val TOPIC_SEPARATOR = ";"
 
-    fun filterByPrefix(config: Map<*, *>, prefix: String, invalidTopics: List<String> = emptyList()): Map<String, String> {
+    fun filterByPrefix(config: Map<*, *>, prefix: String, invalidTopics: Set<String> = emptySet()): Map<String, String> {
         val fullPrefix = "$prefix."
         return config
                 .filterKeys { it.toString().startsWith(fullPrefix) }
@@ -81,7 +81,7 @@ object TopicUtils {
                 .mapValues { it.value.toString() }
     }
 
-    fun splitTopics(cdcMergeTopicsString: String?, invalidTopics: List<String> = emptyList()): Set<String> {
+    fun splitTopics(cdcMergeTopicsString: String?, invalidTopics: Set<String> = emptySet()): Set<String> {
         return if (cdcMergeTopicsString.isNullOrBlank()) {
             emptySet()
         } else {
