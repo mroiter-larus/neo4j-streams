@@ -3,6 +3,7 @@ package streams.kafka.connect.sink.converters
 import com.github.jcustenborder.kafka.connect.utils.data.AbstractConverter
 import org.apache.kafka.connect.data.Schema
 import org.apache.kafka.connect.data.Struct
+import org.neo4j.driver.v1.Values
 import java.math.BigDecimal
 import java.util.*
 
@@ -91,7 +92,7 @@ open class MapValueConverter<T>: AbstractConverter<MutableMap<String, T?>>() {
     }
 
     override fun setDecimalField(result: MutableMap<String, T?>?, fieldName: String?, value: BigDecimal?) {
-        setValue(result, fieldName, value)
+        setValue(result, fieldName, value?.toDouble())
     }
 
     override fun setDateField(result: MutableMap<String, T?>?, fieldName: String?, value: Date?) {

@@ -8,6 +8,7 @@ import org.neo4j.driver.v1.Value
 import org.neo4j.driver.v1.Values
 import streams.kafka.connect.sink.converters.MapValueConverter
 import streams.kafka.connect.sink.converters.Neo4jValueConverter
+import java.math.BigDecimal
 import kotlin.test.assertEquals
 
 class Neo4jValueConverterTest {
@@ -47,6 +48,25 @@ class Neo4jValueConverterTest {
 
         // then
         val expected = getExpectedMap()
+        assertEquals(expected, result)
+    }
+
+    @Test
+    fun `should convert bigdecimal into neo4j values`() {
+        // given
+        // this test generates a simple tree structure like this
+        //           body
+        //          /    \
+        //         p     ul
+        //               |
+        //               li
+        val body = getBigDecimal()
+
+        // when
+        val result = Neo4jValueConverter().convert(body) as Map<String, Value>
+
+        // then
+        val expected = getExpectedBigDecimalConversion()
         assertEquals(expected, result)
     }
 
@@ -113,6 +133,15 @@ class Neo4jValueConverterTest {
             val pListMap = listOf(mapOf("value" to "First Paragraph"),
                     mapOf("value" to "Second Paragraph"))
             return mapOf("ul" to ulListMap, "p" to pListMap)
+        }
+
+        fun getBigDecimal(): Map<String, Any?> {
+            return mapOf("bd" to BigDecimal(10))
+        }
+
+        fun getExpectedBigDecimalConversion(): Map<String, Value> {
+            val doubleValue: Double = "10.0".toDouble()
+            return mapOf("bd" to Values.value(doubleValue))
         }
     }
 
